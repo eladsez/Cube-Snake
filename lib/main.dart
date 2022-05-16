@@ -1,8 +1,11 @@
 import 'package:first_game/StartPage.dart';
 import 'package:flutter/material.dart';
-import 'Game.dart';
+import 'package:first_game/Storage.dart';
 
-void main() {
+
+Future main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Storage.init();
   runApp(const MyApp());
 }
 

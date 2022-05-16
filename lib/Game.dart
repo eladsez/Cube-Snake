@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:first_game/ControlPanel.dart';
 import 'package:first_game/Direction.dart';
 import 'package:first_game/Piece.dart';
+import 'package:first_game/Storage.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:flutter/services.dart';
@@ -25,6 +26,7 @@ class _GamePageState extends State<GamePage> {
   Timer? timer;
   double speed = 1.0;
   int score = 0;
+  int bestScore = 0;
 
   void changeSpeed() {
     if (timer != null && timer!.isActive) {
@@ -42,6 +44,7 @@ class _GamePageState extends State<GamePage> {
     positions = [];
     snakeLen = 5;
     speed = 1;
+    bestScore = Storage.getBestScore() ?? 0;
     changeSpeed();
   }
 
@@ -76,10 +79,20 @@ class _GamePageState extends State<GamePage> {
   }
 
   Widget getScore() {
-    return Text(
-      "Score : " + score.toString(),
-      style: const TextStyle(
-          fontSize: 30, color: Colors.white, fontFamily: 'BebasNeue'),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Score : " + score.toString(),
+          style: const TextStyle(
+              fontSize: 30, color: Colors.white, fontFamily: 'BebasNeue'),
+        ),
+        Text(
+          "Best score : " + bestScore.toString(),
+          style: const TextStyle(
+              fontSize: 30, color: Colors.white, fontFamily: 'BebasNeue'),
+        ),
+      ],
     );
   }
 
@@ -170,6 +183,10 @@ class _GamePageState extends State<GamePage> {
             actions: [
               TextButton(
                   onPressed: () async {
+                    int? currBest = await Storage.getBestScore() ?? -1;
+                    if (score > currBest) {
+                      await Storage.updateBestScore(score);
+                    }
                     Navigator.of(context).pop();
                     restart();
                   },
@@ -224,6 +241,9 @@ class _GamePageState extends State<GamePage> {
       ++snakeLen;
       speed += 0.05;
       score += 5;
+      if (score > bestScore) {
+        bestScore = score;
+      }
       changeSpeed();
     }
   }
@@ -240,14 +260,16 @@ class _GamePageState extends State<GamePage> {
 
     return GestureDetector(
       // responsible for the sliding detection
-      onVerticalDragUpdate: (details) {  // vertical sliding
+      onVerticalDragUpdate: (details) {
+        // vertical sliding
         if (details.delta.direction > 0) {
           direction = Direction.down;
         } else {
           direction = Direction.up;
         }
       },
-      onHorizontalDragUpdate: (details) { // horizontal sliding
+      onHorizontalDragUpdate: (details) {
+        // horizontal sliding
         if (details.delta.direction > 0) {
           direction = Direction.left;
         } else {
